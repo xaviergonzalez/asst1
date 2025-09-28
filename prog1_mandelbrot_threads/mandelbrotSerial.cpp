@@ -36,7 +36,7 @@
    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
+#include <stdio.h>
 
 static inline int mandel(float c_re, float c_im, int count)
 {
@@ -85,7 +85,38 @@ void mandelbrotSerial(
             float y = y0 + j * dy;
 
             int index = (j * width + i);
-            output[index] = mandel(x, y, maxIterations);
+            int temp = mandel(x, y, maxIterations);
+            output[index] = temp;
+        }
+    }
+}
+
+// used for approach 2
+// * x0, y0, x1, y1 describe the complex coordinates mapping
+//   into the image viewport.
+// * slice tells us how many rows to skip between each computed row
+// * width, height describe the size of the output image
+// * startRow, totalRows describe how much of the image to compute
+void mandelbrotSlices(
+    float x0, float y0, float x1, float y1,
+    int width, int height,
+    int startRow, int slice,
+    int maxIterations,
+    int output[])
+{
+    float dx = (x1 - x0) / width;
+    float dy = (y1 - y0) / height;
+
+    int endRow = height;
+
+    for (int j = startRow; j < endRow; j+=slice) {
+        for (int i = 0; i < width; ++i) {
+            float x = x0 + i * dx;
+            float y = y0 + j * dy;
+
+            int index = (j * width + i);
+            int temp = mandel(x, y, maxIterations);
+            output[index] = temp;
         }
     }
 }
