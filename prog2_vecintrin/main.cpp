@@ -186,10 +186,11 @@ void absVector(float* values, float* output, int N) {
 //  Note: Take a careful look at this loop indexing.  This example
 //  code is not guaranteed to work when (N % VECTOR_WIDTH) != 0.
 //  Why is that the case?
+//  Because the last iteration might read past the end of the array. 
   for (int i=0; i<N; i+=VECTOR_WIDTH) {
 
     // All ones
-    maskAll = _cs149_init_ones();
+    maskAll = _cs149_init_ones();  // this is a vector of length 4
 
     // All zeros
     maskIsNegative = _cs149_init_ones(0);
@@ -241,14 +242,60 @@ void clampedExpSerial(float* values, int* exponents, float* output, int N) {
 }
 
 void clampedExpVector(float* values, int* exponents, float* output, int N) {
+  __cs149_vec_float result;
 
-  //
-  // CS149 STUDENTS TODO: Implement your vectorized version of
-  // clampedExpSerial() here.
-  //
-  // Your solution should work for any value of
-  // N and VECTOR_WIDTH, not just when VECTOR_WIDTH divides N
-  //
+  __cs149_vec_float value; 
+  __cs149_vec_int exponent;
+
+  __cs149_vec_int int_zero = _cs149_vset_int(0);
+  __cs149_vec_int int_ones = _cs149_vset_int(1);
+  __cs149_vec_float float_clamp_bound = _cs149_vset_float(9.999999f);
+
+  // All True mask
+  __cs149_mask maskAll = _cs149_init_ones();
+
+  // clamping mask to be used later
+  __cs149_mask maskClamp;
+
+  // used to track edge case when N % VECTOR_WIDTH != 0
+  int remainder = N % VECTOR_WIDTH;
+  
+  int i=0;
+  for (i=0; i<(N- remainder); i+=VECTOR_WIDTH) {
+    // load values and exponents
+    _cs149_vload_float(value, values+i, maskAll);
+    _cs149_vload_int(exponent, exponents+i, maskAll);
+
+    // define a mask for exponent != 0;
+    __cs149_mask maskExpIsNonZero;
+    _cs149_vgt_int(maskExpIsNonZero, exponent, int_zero, maskAll);
+
+    // define result to be all 1.0s
+    // that way with the mask, if originally with exp 0,
+    // we keep result at 1.0
+    _cs149_vset_float(result, 1.f, maskAll);
+
+    while(_cs149_cntbits(maskExpIsNonZero) > 0) {
+      // multiply result by value where appropriate
+      _cs149_vmult_float(result, result, value, maskExpIsNonZero);
+      // decrement exponent by 1 where appropriate
+      _cs149_vsub_int(exponent, exponent, int_ones, maskExpIsNonZero);
+      // update mask for exponent != 0
+      _cs149_vgt_int(maskExpIsNonZero, exponent, int_zero, maskExpIsNonZero);
+    }
+
+    // now we need to clamp values >9.999999f
+    _cs149_vgt_float(maskClamp, result, float_clamp_bound, maskAll);
+    _cs149_vset_float(result, 9.999999f, maskClamp);
+
+    // Write results back to memory
+    _cs149_vstore_float(output+i, result, maskAll);
+  }
+  // we need to be careful for when N%VECTOR_WIDTH != 0
+  if (remainder > 0){
+    clampedExpVector(values + i, exponents + i, output + i, remainder);
+  }
+
   
 }
 
@@ -266,15 +313,34 @@ float arraySumSerial(float* values, int N) {
 // You can assume N is a multiple of VECTOR_WIDTH
 // You can assume VECTOR_WIDTH is a power of 2
 float arraySumVector(float* values, int N) {
+  __cs149_vec_int int_zero = _cs149_vset_int(0);
+  __cs149_vec_int int_ones = _cs149_vset_int(1);
+  __cs149_vec_float float_sum = _cs149_vset_float(0.0f);
+  __cs149_mask maskAll = _cs149_init_ones();
+
+  __cs149_vec_float value; 
   
-  //
-  // CS149 STUDENTS TODO: Implement your vectorized version of arraySumSerial here
-  //
-  
+  // store in float_sum the sum of each vector lane 
+  // across all iterations over values
   for (int i=0; i<N; i+=VECTOR_WIDTH) {
-
+    _cs149_vload_float(value, values+i, maskAll);
+    _cs149_vadd_float(float_sum, float_sum, value, maskAll);
   }
-
-  return 0.0;
+  // now we need to add the float_sum components together 
+  // in a binary manner (over vector_width / 2^i values 
+  // on iteration i)
+  int i = VECTOR_WIDTH;
+  while (i > 1){
+    _cs149_hadd_float(float_sum, float_sum);
+    // keep the bottom half as our working set 
+    _cs149_interleave_float(float_sum, float_sum);
+    i /= 2;
+  }
+  // extract the first value in the vector by 
+  // first extracting all VECTOR_WIDTH values
+  float full_output[VECTOR_WIDTH];
+  _cs149_vstore_float(full_output, float_sum, maskAll);
+  
+  return full_output[0];
 }
 
