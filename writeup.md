@@ -13,15 +13,17 @@ The speed-up is not linear n the number of threads used because of a thread-imba
 
 ## 1.3
 
-The measurements show that because of worker imbalance, we are not getting linear speed ups, but they are instead plateauing.
+The measurements show that because of worker imbalance, we are not getting linear speed ups, but they are instead plateauing. We see imbalance because some parts of the image require more work than others (non uniform work distribution). This is key because we split the image up into even sections in our first approach for each thread to tackle. 
 
 ## 1.4
 
-We chunk the image into smaller pieces, assign each thread to the smaller piece, in this way avoiding worker imbalance. 7.19 thread-up with 8 threads.
+We break the image into multiple rows. Then each thread i takes on the row r for which r mod the number of threads equals i. This means each thread takes on some rows across all numThread sections of the image. In this way, we avoid worker imbalance. Indeed, we see a 7.19x speed-up with 8 threads now. 
+
+This works because now we more uniformly spread out the work across the entire image across each thread. This means each thread takes on a representative sample of work to do across the whole image. 
 
 ## 1.5
 
-Only 7.08 speed up with 16 threads. This is because the specs only support 8 hardware threads, so the OS is context switching between threads.
+Only 7.08 speed up with 16 threads. This is because the specs only support 8 hardware threads, so the OS is context switching between these concurrent threads (thread clashing).
 
 ## Program 2
 
@@ -65,6 +67,10 @@ Total Vector Lanes:        431472
 Passed!!!
 
 We see that utilization goes down as vector width increases. This is likely due to the fact that as vector width increses, there is probably exponent that is much larger than the rest, leading to the other lanes not doing useful computation more often.
+
+It could also be the case in the test cases used that we are dealing with arrays which are not divisible by the vector width. Our code uses the single threaded approach for the last few entries in the values array beyond where the length is dividable by vector width. If vector width is larger, this means these remainder counts will be bigger.
+
+To be more sure, we would need to look at the specific test cases and the way their values are distributed. 
 
 ## Program 3
 
