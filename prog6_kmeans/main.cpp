@@ -14,7 +14,7 @@
 using namespace std;
 
 // Main compute functions
-extern void kMeansThread(double *data, double *clusterCentroids,
+extern void kMeansThread(int numThreads, double *data, double *clusterCentroids,
                       int *clusterAssignments, int M, int N, int K,
                       double epsilon);
 extern double dist(double *x, double *y, int nDim);
@@ -87,6 +87,8 @@ int main() {
   double *clusterCentroids;
   int *clusterAssignments;
 
+  int numThreads = 8;
+
   // NOTE: we will grade your submission using the data in data.dat
   // which is read by this function
   readData("./data.dat", &data, &clusterCentroids, &clusterAssignments, &M, &N,
@@ -95,9 +97,9 @@ int main() {
   // NOTE: if you want to generate your own data (for fun), you can use the
   // below code
   /*
-  M = 1e6;
-  N = 100;
-  K = 3;
+  M = 1e6;  // number of data points
+  N = 100;  // dimensionality of data
+  K = 3;  // number of clusters
   epsilon = 0.1;
 
   data = new double[M * N];
@@ -135,7 +137,7 @@ int main() {
             clusterCentroids, M, N, K);
 
   double startTime = CycleTimer::currentSeconds();
-  kMeansThread(data, clusterCentroids, clusterAssignments, M, N, K, epsilon);
+  kMeansThread(numThreads, data, clusterCentroids, clusterAssignments, M, N, K, epsilon);
   double endTime = CycleTimer::currentSeconds();
   printf("[Total Time]: %.3f ms\n", (endTime - startTime) * 1000);
 
@@ -146,5 +148,6 @@ int main() {
   free(data);
   free(clusterCentroids);
   free(clusterAssignments);
+
   return 0;
 }

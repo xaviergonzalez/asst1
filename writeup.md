@@ -159,4 +159,14 @@ In total this means reading is actually taking up 8 bytes, not 4! This explains 
 
 ## Program 6
 
+### 3.
 
+Total Assignment Time: 6203.868 ms
+Total Centroid Update Time: 982.590 ms
+Total Cost Computation Time: 1855.618 ms
+[Total Time]: 9042.180 ms
+
+By far the most time is being spent on assigning the clusters to the centroid. Luckilly, this part of the program is embarrassingly parallel.
+
+
+### 4.
