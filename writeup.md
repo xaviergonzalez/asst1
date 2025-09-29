@@ -115,6 +115,24 @@ Thus tasks act as a more lightweight and efficient way to get work done in paral
 
 ## Program 4
 
+### 1.
+
+We see a 4.36x speedup with ISPC no tasks. 
+
+We see a 31.62x speedup with ISPC tasks.
+
+Multicore parallelization therefore gives us a 31.62/4.36 = 7.25x speedup from using tasks.
+
+### 2.
+
+Playing around, I saw a best case speedup of 6.32x with no-task ISPC and 38.79x with task ISPC, when I made all elements in values equal to 2.998f. 
+
+This improves SIMD speed-up because we are ensuring that all lanes in the SIMD instructions are being fully utilized at the same time since they are doing the same computation and work. 2.998f is also more work than a value like .001f, so we are ensuring that that multiprocessing is useful here, with the cores constantly at work, not idling, and the overhead now worth it. 
+
+### 3.
+
+I saw a worst case speedup when I made every 8th value in the array equal to 2.998f and the rest equal to 1.f. This saw a speedup of 0.89x from the ISPC no-task, and a 5.98x speedup with tasks. This really slows things down because now in each SIMD instruction, one lane is taking up most of the computation, with the others often masked out. This means we are not fully utilizing the SIMD lanes, greatly reducing our speedup. 
+
 ## Program 5
 
 ## Program 6
