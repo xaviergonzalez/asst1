@@ -135,4 +135,28 @@ I saw a worst case speedup when I made every 8th value in the array equal to 2.9
 
 ## Program 5
 
+### 1. 
+
+I observe a 1.05x speed up from the use of tasks.
+
+This implies to me that tasks are not very useful here! 
+
+I suspect, this cannot be substantially improved to be linear with the number of cores, because it seems to me that this is a memory limited task.
+
+Consider that we do 2 floating point operations per task. Next consider that we load 2 * 4 bytes and write 4 bytes per task (using that a float is 4 bytes).
+
+This is equivalent to 2 flops for every 12 bytes of memory read/written. This indicates that memory bandwidth is key and the limiting factor here not computation. If task speed up is already at 1.05x following parallelization, we might have well hit the memory bandwith saturation point. 
+
+### 2.
+
+When writing the 4 byte result, we first write it into the Cache memory. This accounts for 4 bytes. 
+
+Eventually, the result will not be used for sufficiently long that it is flushed out of the cache memory (perhaps to another line or to DRAM). This accounts for another 4 bytes. 
+
+In total this means reading is actually taking up 8 bytes, not 4! This explains the multiplication by 4 and not 3. 
+
+# TO CHECK: I AM UNSURE ABOUT HOW L1,L2,L3 FLUSHING WORKS HERE. WHY NOT 4 + 4 + 4 + 4 FROM READING? IF WE FLUSH FROM EACH LINE?
+
 ## Program 6
+
+
