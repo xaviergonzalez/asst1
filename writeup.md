@@ -159,4 +159,29 @@ In total this means reading is actually taking up 8 bytes, not 4! This explains 
 
 ## Program 6
 
+old runtime was 9008.047 ms
+
+time tracking reveals most of the compute is spent on computing assignments.
+
+Total time spent computing assignments: 6.163077 seconds
+Total time spent computing centroids: 0.987493 seconds
+Total time spent computing costs: 1.842930 seconds
+
+(the computeAssignments(&args) call takes up most of the time!)
+
+Consequently, since we can only parallelize one function, we shall parallelize computeAssignments().
+
+We shall parallelize over M as this is the largest value. Ie we shall parallelize over the data points. 
+
+(M=1000000, N=100, K=3, epsilon=0.100000)
+
+4837.763 ms
+
+Not quite 2.1x. Tried also moving minDist memory allocation away from thread to reduce memory allocation calls, but this did not help improve speed significantly.
+
+Then looking at the hint in the problem, I realized, look how small K is! We should loop over the points and then the clusters instead of vice versa given how small K is. This enables us to read each point (and its 100 features) once and keep it in cache memory whilst we compute the K distances. This change gave me a significant speedup.
+
+Now my code runs in 3771.586 ms.
+
+This is a speedup of 9008.047/3771.586 = 2.39x (>2.1 required)!
 
