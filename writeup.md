@@ -74,6 +74,45 @@ To be more sure, we would need to look at the specific test cases and the way th
 
 ## Program 3
 
+## part 1
+
+We see a 5.04x speed up from ISPC for view 1 and a 4.36x speedup for view 2. 
+
+We might expect at most a speed of 8x under this CPU with ISPC, because of the configuration to emit 8-wide AVX2 vector instructions.
+
+The ISPC compiler maps gangs of program instances to SIMD instructions executed on a single core. However, these instances may not be well balanced within the SIMD lanes. Notably for instance at boundaries between white and black regions in the Mandelbrot image, there are regions which will require less iterations to finalize and others that will require more. Since SIMD involves masking off lanes that are done (earlier to the ones still working), this actually means we are not fully utilzing all the lanes, explaining why we fail to see the full 8x speedup.
+
+## part 2
+
+### 1. 
+On view 1, we see a 9.88x speedup from task ISPC. This is 1.96x the speedup we saw from ISPC without partitioning (which as said in part 1 is just a 5.04x speedup). 
+
+### 2.
+
+# TO ASK: ARE WE RUNNING 8 SPMD TASKS OR 4 SPMD TASKS IN PARALLEL? UNSURE ABOUT HOW THE HYPERTHREADING WORKS HERE.
+
+We have 4 cores which can each do 2 threads at any one time. This means we can have 8 threads running at any one time. However, if we only create 8 tasks, then if one task is more computationally intensive than the others, we will have worker imbalance and not all threads will be fully utilized. Thus, to balance out the work and ensure we always have cores working, we can create more tasks than threads. 
+
+I was worried about thread clashing so I initially picked 2 tasks per thread so 16 tasks and this saw a speedup of: 32.13x. 
+
+Then, I experimented with 32 tasks to see if having 4 tasks per thread would help. this saw a speed up of: 32.75x which is better. 
+
+I then explored values in between. I found that for 20 tasks, I got the best speedup of 33x.
+
+This implies to me that 20 tasks (or about 2.5 tasks per thread) is a good number as it balances out the work well to ensure all cores are working whilst not creating too many tasks such that thread clashing becomes too significant. 
+
+### 3. 
+
+A thread is a process that can be scheduled by the OS. Threads have their own program counter, registers, and stack. 
+
+The ISPC task is a job which can be scheduled to be complete by worker threads. Each ISPC task works with SPMD, such that each thread that runs an ISPC task is running the program specified by the task with SIMD properties and speedup.
+
+Launching 10,000 threads is expensive and inefficient, because the OS has to manage and schedule all these threads. Creating threads is expensive as they have their own program counter, registers, and stack. This involves a lot of overhead from thread clashing.
+
+Conversely, launching 10,000 tasks is cheaper and more efficient, because the OS still handles its own few threads, which run the queued ISPC tasks. The overhead is less because the OS is not managing, creating, running, and switching between as many threads. 
+
+Thus tasks act as a more lightweight and efficient way to get work done in parallel.
+
 ## Program 4
 
 ## Program 5
