@@ -116,6 +116,8 @@ I then explored values in between. I found that for 20 tasks, I got the best spe
 
 This implies to me that 20 tasks (or about 2.5 tasks per thread) is a good number as it balances out the work well to ensure all cores are working whilst not creating too many tasks such that task-associated overhead becomes too significant. 
 
+NB: note that for <20 tasks, I saw an increase in speed up as I increased tasks. For instance, for 8 tasks I saw a speed up of 19.29x, which jumps to 32.13x for 16 tasks.
+
 ### 3. 
 
 A thread is a process that can be scheduled and run by the OS. Threads have their own program counter, registers, and stack. 

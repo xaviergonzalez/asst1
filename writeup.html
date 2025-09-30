@@ -441,6 +441,7 @@ Passed!!!</p>
 <p>Then, I experimented with 32 tasks to see if having 4 tasks per thread would help. this saw a speed up of: 32.75x which is better.</p>
 <p>I then explored values in between. I found that for 20 tasks, I got the best speedup of 33x.</p>
 <p>This implies to me that 20 tasks (or about 2.5 tasks per thread) is a good number as it balances out the work well to ensure all cores are working whilst not creating too many tasks such that task-associated overhead becomes too significant.</p>
+<p>NB: note that for &lt;20 tasks, I saw an increase in speed up as I increased tasks. For instance, for 8 tasks I saw a speed up of 19.29x, which jumps to 32.13x for 16 tasks.</p>
 <h3 id="3">3.</h3>
 <p>A thread is a process that can be scheduled and run by the OS. Threads have their own program counter, registers, and stack.</p>
 <p>The ISPC task is a job which can be scheduled to be completed by worker threads. Each ISPC task works with SPMD, such that each thread that runs an ISPC task is running the program specified by the task with SIMD properties and speedup.</p>
