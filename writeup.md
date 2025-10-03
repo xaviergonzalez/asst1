@@ -3,6 +3,14 @@
 Xavier Gonzalez: xavier18@stanford.edu
 JS Paul: jspaul@stanford.edu
 
+**Extra credit**: 
+See
+* Problem 2.3
+* Problem 3.2.3
+* Problem 5.2
+
+
+
 ## Program 1
 
 ## 1.2
